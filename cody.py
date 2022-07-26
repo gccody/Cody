@@ -21,7 +21,11 @@ FUNCTION_REGEX = r'(def )[a-zA-Z0-9_]+(\(\))'
 FUNCTION_REGEX_ERROR = r'(def )[a-zA-Z0-9_]+(\(\):)'
 PRINT_REGEX = f'(prin[tln]+)(\()[\'"](.*?)[\'"](\))'
 
+
 def getNewFileName() -> str | None:
+  """
+  Return the string of the name of the compiled file specified using -n.
+  """
   try:
     arg = sys.argv[sys.argv.index(NEW_FILE_NAME_TAG) + 1]
     if arg in TAGS_LIST:
@@ -34,6 +38,9 @@ def getNewFileName() -> str | None:
     raise Exception('No file name was given, make sure to input -n <filename>')
 
 def getOutputFolderName() -> str | None:
+  """
+  Return the string of the name of the output folder specified using -o.
+  """
   try:
     arg =  sys.argv[sys.argv.index(OUTPUT_FOLDER_NAME_TAG) + 1]
     if arg in TAGS_LIST:
@@ -46,6 +53,9 @@ def getOutputFolderName() -> str | None:
     raise Exception('No output folder name was given, make sure to input -o <output folder name>')
 
 def getFileName() -> str | None:
+  """
+  Return the string of the name of the file to compile specified using -f.
+  """
   try:
     return sys.argv[sys.argv.index(FILE_NAME_TAG) + 1]
   except ValueError:
@@ -54,6 +64,10 @@ def getFileName() -> str | None:
   return 
 
 def args() -> list[str]:
+  """
+  Returns the values of each argument used when calling the program.
+  """
+
   # Returns about the language
   if len(sys.argv) == 1:
     print("""
@@ -97,9 +111,13 @@ TODO:
   return FILENAME, OUTPUT_FOLDER, NEW_FILE_NAME
 
 def errorHandler(data):
+  """
+  Checks the Cody code to make sure that no errors will be created when compiling.
+  """
+  
   # Check if any functions are written incorrectly
   if re.search(FUNCTION_REGEX_ERROR, data):
-    raise Exception('Function not create correctly, Nothing is needed to end the function initalization')
+    raise Exception('Function not created correctly, Nothing is needed to end the function initalization')
 
 def basicCompile(data: str):
   # Raise any errors
