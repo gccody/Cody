@@ -1,28 +1,49 @@
+import re
 import sys
 import os
+from unittest.mock import DEFAULT
 
-# -f filename
+# Console Tags
 FILE_NAME_TAG = '-f'
 OUTPUT_FOLDER_NAME_TAG = '-o'
 NEW_FILE_NAME_TAG = '-n'
+TAGS_LIST = [FILE_NAME_TAG, OUTPUT_FOLDER_NAME_TAG, NEW_FILE_NAME_TAG]
 
+# Default folder output
 DEFAULT_OUTPUT_FOLDER = 'output'
+
+# Printing Tokens
+PRINT_TOKEN = 'print'
+PRINT_LINE_TOKEN = 'println'
+
+# Regex
+FUNCTION_REGEX = r'(def )[a-zA-Z0-9_]+(\(\))'
+FUNCTION_REGEX_ERROR = r'(def )[a-zA-Z0-9_]+(\(\):)'
+PRINT_REGEX = f'(prin[tln]+)(\()[\'"](.*?)[\'"](\))'
 
 def getNewFileName():
   try:
-    return sys.argv[sys.argv.index(NEW_FILE_NAME_TAG) + 1]
+    arg = sys.argv[sys.argv.index(NEW_FILE_NAME_TAG) + 1]
+    if arg in TAGS_LIST:
+      raise Exception('No file name was given, make sure to input -n <filename>')
+    else:
+      return arg
   except ValueError:
-    print('No new file name was given, make sure to input -n <new file name>')
-
-  return
+    return None
+  except IndexError:
+    raise Exception('No file name was given, make sure to input -n <filename>')
 
 def getOutputFolderName():
   try:
-    return sys.argv[sys.argv.index(OUTPUT_FOLDER_NAME_TAG) + 1]
+    arg =  sys.argv[sys.argv.index(OUTPUT_FOLDER_NAME_TAG) + 1]
+    if arg in TAGS_LIST:
+      raise Exception('No output folder name was given, make sure to input -o <output folder name>')
+    else:
+      return arg
   except ValueError:
-    print('No output folder name was given, make sure to input -o <output folder name>')
-
-  return
+    return None
+  except IndexError:
+    raise Exception('No output folder name was given, make sure to input -o <output folder name>')
 
 def getFileName():
   try:
@@ -33,6 +54,7 @@ def getFileName():
   return
 
 def args():
+  # Returns about the language
   if len(sys.argv) == 1:
     print("""
 
@@ -75,18 +97,43 @@ TODO:
 
   return FILENAME, OUTPUT_FOLDER, NEW_FILE_NAME
 
+def errorHandler(data):
+  # Check if any functions are written incorrectly
+  if re.search(FUNCTION_REGEX_ERROR, data):
+    raise Exception('Function not create correctly, Nothing is needed to end the function initalization')
+
 def basicCompile(data: str):
-  data.replace
+  # Raise any errors
+  errorHandler(data)
+
+  # Format functions
+  FUNCTION_MATCHES = re.finditer(FUNCTION_REGEX, data, re.MULTILINE)
+  for MATCHNUM, MATCH in enumerate(FUNCTION_MATCHES, start=1):
+    data = data.replace(MATCH.group(), f'{MATCH.group()}:')
+
+  PRINT_MATCHES = re.finditer(PRINT_REGEX, data, re.MULTILINE)
+  for MATCHNUM, MATCH in enumerate(PRINT_MATCHES, start=1):
+    if MATCH.group().find('println') != -1:
+      data = data.replace(MATCH.group(), f'print("{MATCH.group(3)}", end="\\n")')
+    else:
+      data = data.replace(MATCH.group(), f'print("{MATCH.group(3)}", end="")')
+
+  return data
 
 def main():
   FILENAME, OUTPUT_FOLDER, NEW_FILE_NAME = args()
+  TRIMMED_DEFAULT_FILE_NAME = FILENAME.replace('.cy', '')
   if FILENAME == None: return
   DIR = os.getcwd()
   FILE = open(f'{DIR}\\{FILENAME}', 'r', encoding='utf-8')
   FILE_DATA = FILE.read()
   FILE.close()
   BASIC_COMPILED_DATA = basicCompile(FILE_DATA)
-  with open(f'{DIR}\\{OUTPUT_FOLDER if OUTPUT_FOLDER else DEFAULT_OUTPUT_FOLDER}\\{NEW_FILE_NAME if NEW_FILE_NAME else FILENAME}.py', 'w', encoding='utf-8') as F:
+  FINAL_OUTPUT_FOLDER = OUTPUT_FOLDER if OUTPUT_FOLDER else DEFAULT_OUTPUT_FOLDER
+  FINAL_FILE_NAME = NEW_FILE_NAME if NEW_FILE_NAME else TRIMMED_DEFAULT_FILE_NAME
+  if not os.path.exists(f'{DIR}\\{FINAL_OUTPUT_FOLDER}'):
+    os.mkdir(f'{DIR}\\{FINAL_OUTPUT_FOLDER}')
+  with open(f'{DIR}\\{FINAL_OUTPUT_FOLDER}\\{FINAL_FILE_NAME}.py', 'w', encoding='utf-8') as F:
     F.write(BASIC_COMPILED_DATA)
 
 if __name__ == '__main__':

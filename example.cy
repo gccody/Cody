@@ -1,5 +1,7 @@
-def testing():
-  println("Hello World")
+def testing()
+  print("Hello World")
+  println("Testing")
+  print("New Line!")
 
-def main():
+def main()
   testing()
