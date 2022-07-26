@@ -21,7 +21,7 @@ FUNCTION_REGEX = r'(def )[a-zA-Z0-9_]+(\(\))'
 FUNCTION_REGEX_ERROR = r'(def )[a-zA-Z0-9_]+(\(\):)'
 PRINT_REGEX = f'(prin[tln]+)(\()[\'"](.*?)[\'"](\))'
 
-def getNewFileName():
+def getNewFileName() -> str | None:
   try:
     arg = sys.argv[sys.argv.index(NEW_FILE_NAME_TAG) + 1]
     if arg in TAGS_LIST:
@@ -29,11 +29,11 @@ def getNewFileName():
     else:
       return arg
   except ValueError:
-    return None
+    return 
   except IndexError:
     raise Exception('No file name was given, make sure to input -n <filename>')
 
-def getOutputFolderName():
+def getOutputFolderName() -> str | None:
   try:
     arg =  sys.argv[sys.argv.index(OUTPUT_FOLDER_NAME_TAG) + 1]
     if arg in TAGS_LIST:
@@ -41,19 +41,19 @@ def getOutputFolderName():
     else:
       return arg
   except ValueError:
-    return None
+    return 
   except IndexError:
     raise Exception('No output folder name was given, make sure to input -o <output folder name>')
 
-def getFileName():
+def getFileName() -> str | None:
   try:
     return sys.argv[sys.argv.index(FILE_NAME_TAG) + 1]
   except ValueError:
     print('No filename was given, make sure to input -f <filename>')
 
-  return
+  return 
 
-def args():
+def args() -> list[str]:
   # Returns about the language
   if len(sys.argv) == 1:
     print("""
@@ -88,12 +88,11 @@ TODO:
   - string, boolean, int, float, long, double, array, tuple
   - for, in, and, or, as, while, true, false, if, return, pass, try, catch, finally, null, println, print
 """)
-    return
-  FILENAME = getFileName()
-  OUTPUT_FOLDER = getOutputFolderName()
-  NEW_FILE_NAME = getNewFileName()
-  if FILENAME == None:
-    return
+    return [None, None, None]
+
+  FILENAME: str | None = getFileName()
+  OUTPUT_FOLDER: str | None = getOutputFolderName()
+  NEW_FILE_NAME: str | None = getNewFileName()
 
   return FILENAME, OUTPUT_FOLDER, NEW_FILE_NAME
 
@@ -122,15 +121,15 @@ def basicCompile(data: str):
 
 def main():
   FILENAME, OUTPUT_FOLDER, NEW_FILE_NAME = args()
+  if FILENAME is None: return
   TRIMMED_DEFAULT_FILE_NAME = FILENAME.replace('.cy', '')
-  if FILENAME == None: return
   DIR = os.getcwd()
   FILE = open(f'{DIR}\\{FILENAME}', 'r', encoding='utf-8')
   FILE_DATA = FILE.read()
   FILE.close()
   BASIC_COMPILED_DATA = basicCompile(FILE_DATA)
-  FINAL_OUTPUT_FOLDER = OUTPUT_FOLDER if OUTPUT_FOLDER else DEFAULT_OUTPUT_FOLDER
-  FINAL_FILE_NAME = NEW_FILE_NAME if NEW_FILE_NAME else TRIMMED_DEFAULT_FILE_NAME
+  FINAL_OUTPUT_FOLDER = OUTPUT_FOLDER if OUTPUT_FOLDER != '' else DEFAULT_OUTPUT_FOLDER
+  FINAL_FILE_NAME = NEW_FILE_NAME if NEW_FILE_NAME != '' else TRIMMED_DEFAULT_FILE_NAME
   if not os.path.exists(f'{DIR}\\{FINAL_OUTPUT_FOLDER}'):
     os.mkdir(f'{DIR}\\{FINAL_OUTPUT_FOLDER}')
   with open(f'{DIR}\\{FINAL_OUTPUT_FOLDER}\\{FINAL_FILE_NAME}.py', 'w', encoding='utf-8') as F:
