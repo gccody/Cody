@@ -46,10 +46,10 @@ TODO:
   - string, boolean, int, float, long, double, array, tuple
   - for, in, and, or, as, while, true, false, if, return, pass, try, catch, finally, null, println, print
 """)
-    return;
+    return
   FILENAME = getFileName()
   if FILENAME == None:
-    return;
+    return
 
   return FILENAME
 
