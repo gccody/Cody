@@ -3,6 +3,26 @@ import os
 
 # -f filename
 FILE_NAME_TAG = '-f'
+OUTPUT_FOLDER_NAME_TAG = '-o'
+NEW_FILE_NAME_TAG = '-n'
+
+DEFAULT_OUTPUT_FOLDER = 'output'
+
+def getNewFileName():
+  try:
+    return sys.argv[sys.argv.index(NEW_FILE_NAME_TAG) + 1]
+  except ValueError:
+    print('No new file name was given, make sure to input -n <new file name>')
+
+  return
+
+def getOutputFolderName():
+  try:
+    return sys.argv[sys.argv.index(OUTPUT_FOLDER_NAME_TAG) + 1]
+  except ValueError:
+    print('No output folder name was given, make sure to input -o <output folder name>')
+
+  return
 
 def getFileName():
   try:
@@ -10,7 +30,7 @@ def getFileName():
   except ValueError:
     print('No filename was given, make sure to input -f <filename>')
 
-  return 
+  return
 
 def args():
   if len(sys.argv) == 1:
@@ -48,17 +68,26 @@ TODO:
 """)
     return
   FILENAME = getFileName()
+  OUTPUT_FOLDER = getOutputFolderName()
+  NEW_FILE_NAME = getNewFileName()
   if FILENAME == None:
     return
 
-  return FILENAME
+  return FILENAME, OUTPUT_FOLDER, NEW_FILE_NAME
+
+def basicCompile(data: str):
+  data.replace
 
 def main():
-  FILENAME = args()
+  FILENAME, OUTPUT_FOLDER, NEW_FILE_NAME = args()
   if FILENAME == None: return
   DIR = os.getcwd()
   FILE = open(f'{DIR}\\{FILENAME}', 'r', encoding='utf-8')
-  print(FILE.read())
+  FILE_DATA = FILE.read()
+  FILE.close()
+  BASIC_COMPILED_DATA = basicCompile(FILE_DATA)
+  with open(f'{DIR}\\{OUTPUT_FOLDER if OUTPUT_FOLDER else DEFAULT_OUTPUT_FOLDER}\\{NEW_FILE_NAME if NEW_FILE_NAME else FILENAME}.py', 'w', encoding='utf-8') as F:
+    F.write(BASIC_COMPILED_DATA)
 
 if __name__ == '__main__':
   main()
