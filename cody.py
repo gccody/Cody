@@ -17,9 +17,12 @@ PRINT_TOKEN = 'print'
 PRINT_LINE_TOKEN = 'println'
 
 # Regex
-FUNCTION_REGEX = r'(def )[a-zA-Z0-9_]+(\(\))'
-FUNCTION_REGEX_ERROR = r'(def )[a-zA-Z0-9_]+(\(\):)'
+FUNCTION_REGEX = r'(def )[a-zA-Z0-9_]+(\((.*?)\))'
+FUNCTION_REGEX_ERROR = r'(def )[a-zA-Z0-9_]+(\((.*?)\): )'
 PRINT_REGEX = f'(prin[tln]+)(\()[\'"](.*?)[\'"](\))'
+TRUTHY_REGEX = r'(.*?(?=\?))\?(.*?(?=:))\:(.*)'
+TRUTH_REGEX_ERROR = r'(.*?(?=(if)))(.*?(?=(else)))(.*)'
+MAIN_FUNCTION_REGEX = r'(def main())'
 
 def getNewFileName() -> str | None:
   try:
@@ -100,6 +103,10 @@ def errorHandler(data):
   # Check if any functions are written incorrectly
   if re.search(FUNCTION_REGEX_ERROR, data):
     raise Exception('Function not create correctly, Nothing is needed to end the function initalization')
+  if re.search(TRUTH_REGEX_ERROR, data):
+    raise Exception('Truthy statement not create correctly, Ex: <bool> ? <true> : <false>')
+  if not re.search(MAIN_FUNCTION_REGEX, data):
+    raise Exception('Main function not created, make sure to create a main function')
 
 def basicCompile(data: str):
   # Raise any errors
@@ -110,12 +117,26 @@ def basicCompile(data: str):
   for MATCHNUM, MATCH in enumerate(FUNCTION_MATCHES, start=1):
     data = data.replace(MATCH.group(), f'{MATCH.group()}:')
 
+  # Format print statements
   PRINT_MATCHES = re.finditer(PRINT_REGEX, data, re.MULTILINE)
   for MATCHNUM, MATCH in enumerate(PRINT_MATCHES, start=1):
     if MATCH.group().find('println') != -1:
       data = data.replace(MATCH.group(), f'print("{MATCH.group(3)}", end="\\n")')
     else:
       data = data.replace(MATCH.group(), f'print("{MATCH.group(3)}", end="")')
+
+  # Format truthy statements
+  data = data.replace('true', 'True')
+  data = data.replace('false', 'False')
+  TRUTHY_MATCHES = re.finditer(TRUTHY_REGEX, data, re.MULTILINE)
+  for MATCHNUM, MATCH in enumerate(TRUTHY_MATCHES, start=1):
+    data = data.replace(MATCH.group(), f'{MATCH.group(2).strip()} if {MATCH.group(1).strip()} else {MATCH.group(3).strip()}')
+
+
+  data += """\n
+if __name__ == '__main__':
+  main()
+  """
 
   return data
 
@@ -128,8 +149,8 @@ def main():
   FILE_DATA = FILE.read()
   FILE.close()
   BASIC_COMPILED_DATA = basicCompile(FILE_DATA)
-  FINAL_OUTPUT_FOLDER = OUTPUT_FOLDER if OUTPUT_FOLDER != '' else DEFAULT_OUTPUT_FOLDER
-  FINAL_FILE_NAME = NEW_FILE_NAME if NEW_FILE_NAME != '' else TRIMMED_DEFAULT_FILE_NAME
+  FINAL_OUTPUT_FOLDER = OUTPUT_FOLDER if OUTPUT_FOLDER else DEFAULT_OUTPUT_FOLDER
+  FINAL_FILE_NAME = NEW_FILE_NAME if NEW_FILE_NAME else TRIMMED_DEFAULT_FILE_NAME
   if not os.path.exists(f'{DIR}\\{FINAL_OUTPUT_FOLDER}'):
     os.mkdir(f'{DIR}\\{FINAL_OUTPUT_FOLDER}')
   with open(f'{DIR}\\{FINAL_OUTPUT_FOLDER}\\{FINAL_FILE_NAME}.py', 'w', encoding='utf-8') as F:
