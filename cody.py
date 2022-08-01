@@ -23,6 +23,7 @@ PRINT_REGEX = f'(prin[tln]+)(\()[\'"](.*?)[\'"](\))'
 TRUTHY_REGEX = r'(.*?(?=\?))\?(.*?(?=:))\:(.*)'
 TRUTH_REGEX_ERROR = r'(.*?(?=(if)))(.*?(?=(else)))(.*)'
 MAIN_FUNCTION_REGEX = r'(def main())'
+STRING_REGEX = r'("(.*?)")'
 
 
 def getNewFileName() -> str | None:
@@ -94,16 +95,7 @@ This language will be for multipurpose use and will be compiled using python cod
 Using the compiled python code it will then be converted into an exe script.
 
 TODO:
-  - create basic premade variables
-  - be able to create variables and manipulate them
-  - be able to create a function
-  - be able to have arguments for function and return statements
-  - create try catch blocks
-  - create easy to understand syntax
-  - create for loops
-  - create advanced looping
-  - string, boolean, int, float, long, double, array, tuple
-  - for, in, and, or, as, while, true, false, if, return, pass, try, catch, finally, null, println, print
+  - DO NOT EDIT STRINGS
 """)
     return [None, None, None]
 
@@ -173,6 +165,7 @@ def main():
     os.mkdir(f'{DIR}\\{FINAL_OUTPUT_FOLDER}')
   with open(f'{DIR}\\{FINAL_OUTPUT_FOLDER}\\{FINAL_FILE_NAME}.py', 'w', encoding='utf-8') as F:
     F.write(BASIC_COMPILED_DATA)
+  os.system(f"pyinstaller -y -F -w {FINAL_OUTPUT_FOLDER}/{FINAL_FILE_NAME}.py")
 
 if __name__ == '__main__':
   main()
