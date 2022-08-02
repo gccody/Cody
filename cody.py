@@ -18,12 +18,12 @@ PRINT_LINE_TOKEN = 'println'
 
 # Regex
 FUNCTION_REGEX = r'(def )[a-zA-Z0-9_]+(\((.*?)\))'
-FUNCTION_REGEX_ERROR = r'(def )[a-zA-Z0-9_]+(\((.*?)\): )'
+FUNCTION_REGEX_ERROR = r'(def )[a-zA-Z0-9_]+(\((.*?)\):)'
 PRINT_REGEX = f'(prin[tln]+)(\()[\'"](.*?)[\'"](\))'
 TRUTHY_REGEX = r'(.*?(?=\?))\?(.*?(?=:))\:(.*)'
 TRUTH_REGEX_ERROR = r'(.*?(?=(if)))(.*?(?=(else)))(.*)'
 MAIN_FUNCTION_REGEX = r'(def main())'
-STRING_REGEX = r'("(.*?)")'
+STRING_REGEX = r'(['"](.*?)["'])'
 
 
 def getNewFileName() -> str | None:
@@ -100,6 +100,7 @@ TODO:
     return [None, None, None]
 
   FILENAME: str | None = getFileName()
+  print("""Found File(s)""")
   OUTPUT_FOLDER: str | None = getOutputFolderName()
   NEW_FILE_NAME: str | None = getNewFileName()
 
@@ -125,7 +126,8 @@ def basicCompile(data: str):
   # Format functions
   FUNCTION_MATCHES = re.finditer(FUNCTION_REGEX, data, re.MULTILINE)
   for MATCHNUM, MATCH in enumerate(FUNCTION_MATCHES, start=1):
-    data = data.replace(MATCH.group(), f'{MATCH.group()}:')
+    data = data.replace(MATCH.group(), f'{MATCH.group()}:', MATCHNUM)
+  print(""" - Compiled Functions""")
 
   # Format print statements
   PRINT_MATCHES = re.finditer(PRINT_REGEX, data, re.MULTILINE)
@@ -134,6 +136,7 @@ def basicCompile(data: str):
       data = data.replace(MATCH.group(), f'print("{MATCH.group(3)}", end="\\n")')
     else:
       data = data.replace(MATCH.group(), f'print("{MATCH.group(3)}", end="")')
+  print(""" - Compiled print statements""")
 
   # Format truthy statements
   data = data.replace('true', 'True')
@@ -141,6 +144,7 @@ def basicCompile(data: str):
   TRUTHY_MATCHES = re.finditer(TRUTHY_REGEX, data, re.MULTILINE)
   for MATCHNUM, MATCH in enumerate(TRUTHY_MATCHES, start=1):
     data = data.replace(MATCH.group(), f'{MATCH.group(2).strip()} if {MATCH.group(1).strip()} else {MATCH.group(3).strip()}')
+  print(""" - Compiled truthy statements""")
 
 
   data += """\n
@@ -157,15 +161,19 @@ def main():
   DIR = os.getcwd()
   FILE = open(f'{DIR}\\{FILENAME}', 'r', encoding='utf-8')
   FILE_DATA = FILE.read()
+  print("""Reading File...""")
   FILE.close()
+  print("""Compiling Data...""")
   BASIC_COMPILED_DATA = basicCompile(FILE_DATA)
   FINAL_OUTPUT_FOLDER = OUTPUT_FOLDER if OUTPUT_FOLDER else DEFAULT_OUTPUT_FOLDER
   FINAL_FILE_NAME = NEW_FILE_NAME if NEW_FILE_NAME else TRIMMED_DEFAULT_FILE_NAME
   if not os.path.exists(f'{DIR}\\{FINAL_OUTPUT_FOLDER}'):
     os.mkdir(f'{DIR}\\{FINAL_OUTPUT_FOLDER}')
+  print("""Creating Output Directory...""")
   with open(f'{DIR}\\{FINAL_OUTPUT_FOLDER}\\{FINAL_FILE_NAME}.py', 'w', encoding='utf-8') as F:
     F.write(BASIC_COMPILED_DATA)
-  os.system(f"pyinstaller -y -F -w {FINAL_OUTPUT_FOLDER}/{FINAL_FILE_NAME}.py")
+  print("""Finished!""")
+  # os.system(f"pyinstaller -y -F -w {FINAL_OUTPUT_FOLDER}/{FINAL_FILE_NAME}.py")
 
 if __name__ == '__main__':
   main()
