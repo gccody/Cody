@@ -23,8 +23,9 @@ PRINT_REGEX = f'(prin[tln]+)(\()[\'"](.*?)[\'"](\))'
 TRUTHY_REGEX = r'(.*?(?=\?))\?(.*?(?=:))\:(.*)'
 TRUTH_REGEX_ERROR = r'(.*?(?=(if)))(.*?(?=(else)))(.*)'
 MAIN_FUNCTION_REGEX = r'(def main())'
-STRING_REGEX = r'(['"](.*?)["'])'
-
+STRING_REGEX_1 = r'"(.*?)"'
+STRING_REGEX_2 = r'\'(.*?)\''
+DOCSTRING_REGEX = r'"""([\s\S]*?)"""'
 
 def getNewFileName() -> str | None:
   """
@@ -119,9 +120,17 @@ def errorHandler(data):
   if not re.search(MAIN_FUNCTION_REGEX, data):
     raise Exception('Main function not created, make sure to create a main function')
 
+def getStrings(data) -> list[str]:
+  """
+  Returns all the strings in the files
+  """
+
+  strings: list[str] = []
+
 def basicCompile(data: str):
   # Raise any errors
   errorHandler(data)
+  strings: list[str] = getStrings(data)
 
   # Format functions
   FUNCTION_MATCHES = re.finditer(FUNCTION_REGEX, data, re.MULTILINE)
