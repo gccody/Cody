@@ -127,6 +127,19 @@ def getStrings(data) -> list[str]:
 
   strings: list[str] = []
 
+  MATCHES_1 = re.finditer(STRING_REGEX_1, data, re.MULTILINE)
+  MATCHES_2 = re.finditer(STRING_REGEX_2, data, re.MULTILINE)
+
+  for MATCH in MATCHES_1:
+    strings.append(MATCH.group())
+
+  for MATCH in MATCHES_2:
+    strings.append(MATCH.group())
+
+  print(strings)
+
+  return strings
+
 def basicCompile(data: str):
   # Raise any errors
   errorHandler(data)
