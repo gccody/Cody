@@ -23,8 +23,9 @@ PRINT_REGEX = f'(prin[tln]+)(\()[\'"](.*?)[\'"](\))'
 TRUTHY_REGEX = r'(.*?(?=\?))\?(.*?(?=:))\:(.*)'
 TRUTH_REGEX_ERROR = r'(.*?(?=(if)))(.*?(?=(else)))(.*)'
 MAIN_FUNCTION_REGEX = r'(def main())'
-STRING_REGEX_1 = r'"(.*?)"'
-STRING_REGEX_2 = r'\'(.*?)\''
+STRING_REGEX_1 = r'"(.*?(?="))"'
+STRING_REGEX_2 = r'\'(.*?(?=\'))\''
+DOC_STRING_REGEX = r'"""(.*?(?="""))"""'
 DOCSTRING_REGEX = r'"""([\s\S]*?)"""'
 
 def getNewFileName() -> str | None:
@@ -129,6 +130,7 @@ def getStrings(data) -> list[str]:
 
   MATCHES_1 = re.finditer(STRING_REGEX_1, data, re.MULTILINE)
   MATCHES_2 = re.finditer(STRING_REGEX_2, data, re.MULTILINE)
+  MATCHES_3 = re.finditer(DOCSTRING_REGEX, data, re.MULTILINE)
 
   for MATCH in MATCHES_1:
     strings.append(MATCH.group())
@@ -136,9 +138,13 @@ def getStrings(data) -> list[str]:
   for MATCH in MATCHES_2:
     strings.append(MATCH.group())
 
-  print(strings)
+  for MATCH in MATCHES_3:
+    strings.append(MATCH.group())
 
   return strings
+
+def checkIfString(data: str, strings: list[str]) -> bool:
+  pass
 
 def basicCompile(data: str):
   # Raise any errors
