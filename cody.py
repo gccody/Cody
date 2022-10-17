@@ -23,9 +23,9 @@ PRINT_REGEX = f'(prin[tln]+)(\()[\'"](.*?)[\'"](\))'
 TRUTHY_REGEX = r'(.*?(?=\?))\?(.*?(?=:))\:(.*)'
 TRUTH_REGEX_ERROR = r'(.*?(?=(if)))(.*?(?=(else)))(.*)'
 MAIN_FUNCTION_REGEX = r'(def main())'
-STRING_REGEX_1 = r'"(.*?(?="))"'
-STRING_REGEX_2 = r'\'(.*?(?=\'))\''
-DOC_STRING_REGEX = r'"""(.*?(?="""))"""'
+STRING_REGEX_1 = r'"(.*?(?="))"(?<!\\")'
+STRING_REGEX_2 = r'\'(.*?(?=\'))\'(?<!\\\')'
+# DOC_STRING_REGEX = r'"""(.*?(?="""))"""'
 DOCSTRING_REGEX = r'"""([\s\S]*?)"""'
 
 def getNewFileName() -> str | None:
@@ -121,57 +121,75 @@ def errorHandler(data):
   if not re.search(MAIN_FUNCTION_REGEX, data):
     raise Exception('Main function not created, make sure to create a main function')
 
-def getStrings(data) -> list[str]:
+def getStrings(data) -> list[tuple[str, int, int]]:
   """
   Returns all the strings in the files
   """
 
-  strings: list[str] = []
+  strings: list[tuple[str, int, int]] = []
 
   MATCHES_1 = re.finditer(STRING_REGEX_1, data, re.MULTILINE)
+  for MATCHNUM, MATCH in enumerate(MATCHES_1, start=1):
+    strings.append((MATCH.group(), MATCH.start(), MATCH.end()))
   MATCHES_2 = re.finditer(STRING_REGEX_2, data, re.MULTILINE)
+  for MATCHNUM, MATCH in enumerate(MATCHES_2, start=1):
+    strings.append((MATCH.group(), MATCH.start(), MATCH.end()))
   MATCHES_3 = re.finditer(DOCSTRING_REGEX, data, re.MULTILINE)
-
-  for MATCH in MATCHES_1:
-    strings.append(MATCH.group())
-
-  for MATCH in MATCHES_2:
-    strings.append(MATCH.group())
-
-  for MATCH in MATCHES_3:
-    strings.append(MATCH.group())
+  for MATCHNUM, MATCH in enumerate(MATCHES_3, start=1):
+    strings.append((MATCH.group(), MATCH.start(), MATCH.end()))
 
   return strings
 
-def checkIfString(data: str, strings: list[str]) -> bool:
-  pass
 
+def isString(data: tuple[str, int, int], strings: list[tuple[str, int, int]]) -> bool:
+  start = data[1]
+  end = data[2]
+  if data in strings: return True
+  for string in strings:
+    stringg = string[0]
+    string_start = string[1]
+    string_end = string[2]
+    if data[0] not in stringg: continue
+    if start >= string_start and end <= string_end:
+      return True
+  return False
+
+#TODO - Fix truthy compilation
 def basicCompile(data: str):
   # Raise any errors
   errorHandler(data)
-  strings: list[str] = getStrings(data)
+  strings: list[tuple[str, int, int]] = getStrings(data)
 
   # Format functions
   FUNCTION_MATCHES = re.finditer(FUNCTION_REGEX, data, re.MULTILINE)
+  offset=0
   for MATCHNUM, MATCH in enumerate(FUNCTION_MATCHES, start=1):
-    data = data.replace(MATCH.group(), f'{MATCH.group()}:', MATCHNUM)
+    print(isString((MATCH.group(), MATCH.start(), MATCH.end()), strings))
+    if isString((MATCH.group(), MATCH.start(), MATCH.end()), strings): continue
+    data = data[:MATCH.start()+offset] + f'{MATCH.group()}:' + data[MATCH.end()+offset:]
+    offset+=1
   print(""" - Compiled Functions""")
 
   # Format print statements
   PRINT_MATCHES = re.finditer(PRINT_REGEX, data, re.MULTILINE)
+  offset=0
   for MATCHNUM, MATCH in enumerate(PRINT_MATCHES, start=1):
-    if MATCH.group().find('println') != -1:
+    if "println" in MATCH.group():
       data = data.replace(MATCH.group(), f'print("{MATCH.group(3)}", end="\\n")')
+      offset+=11
     else:
       data = data.replace(MATCH.group(), f'print("{MATCH.group(3)}", end="")')
+      offset+=9
   print(""" - Compiled print statements""")
 
   # Format truthy statements
   data = data.replace('true', 'True')
   data = data.replace('false', 'False')
   TRUTHY_MATCHES = re.finditer(TRUTHY_REGEX, data, re.MULTILINE)
+  offset=0
   for MATCHNUM, MATCH in enumerate(TRUTHY_MATCHES, start=1):
     data = data.replace(MATCH.group(), f'{MATCH.group(2).strip()} if {MATCH.group(1).strip()} else {MATCH.group(3).strip()}')
+    # offset+=
   print(""" - Compiled truthy statements""")
 
 
